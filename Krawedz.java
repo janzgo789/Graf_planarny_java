@@ -20,4 +20,5 @@ public class Krawedz {
     // Gettery do rysowania
     public Wierzcholek getV1() { return v1; }
     public Wierzcholek getV2() { return v2; }
+    public double getWaga() { return waga; }
 }
