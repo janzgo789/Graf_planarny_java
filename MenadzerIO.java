@@ -2,40 +2,69 @@ package proj;
 
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 /**
  * Klasa narzędziowa do importu danych z formatu tekstowego i binarnego.
  */
 public class MenadzerIO {
 
-    public static void wczytajTekstowy(File plik, ModelGrafu model) throws IOException {
+    /**
+     * Metoda czyta plik wejściowy i uzupełnia pozycje w strukturach wierzchołków i krawędzi.
+     */
+    public static void wczytajWejscie(File plik, ModelGrafu model) throws IOException {
         model.wyczysc();
         try (BufferedReader br = new BufferedReader(new FileReader(plik))) {
             String linia;
             while ((linia = br.readLine()) != null) {
                 String[] czesci = linia.trim().split("\\s+");
-                if (czesci.length >= 3) {
+                if (czesci.length == 4) {
                     String nazwa = czesci[0];
-                    double x = Double.parseDouble(czesci[1]);
-                    double y = Double.parseDouble(czesci[2]);
-                    model.dodajWierzcholek(new Wierzcholek(nazwa, x, y));
+                    String id_v1 = czesci[1];
+                    String id_v2 = czesci[2];
+                    double waga = Double.parseDouble(czesci[3]);
+
+                    Map<String, Wierzcholek> mapaWierzcholkow = model.getWierzcholki();
+
+                    Wierzcholek v1 = mapaWierzcholkow.get(id_v1);
+                    if (v1 == null) {
+                        v1 = new Wierzcholek(id_v1);
+                        model.dodajWierzcholek(v1);
+                    }
+
+                    Wierzcholek v2 = mapaWierzcholkow.get(id_v2);
+                    if (v2 == null) {
+                        v2 = new Wierzcholek(id_v2);
+                        model.dodajWierzcholek(v2);
+                    }
+
+                    model.dodajKrawedz(new Krawedz(nazwa, v1, v2, waga));
                 }
             }
         }
     }
 
-    public static void wczytajBinarny(File plik, ModelGrafu model) throws IOException {
-        model.wyczysc();
-        try (DataInputStream dis = new DataInputStream(new FileInputStream(plik))) {
-            while (dis.available() > 0) {
-                int dlugoscNazwy = dis.readInt();
-                byte[] bajtyNazwy = new byte[dlugoscNazwy];
-                dis.readFully(bajtyNazwy);
-                String nazwa = new String(bajtyNazwy, StandardCharsets.UTF_8);
-                double x = dis.readDouble();
-                double y = dis.readDouble();
-                model.dodajWierzcholek(new Wierzcholek(nazwa, x, y));
+    /**
+     * Metoda czyta plik wynikowy z C i aktualizuje pozycje istniejących wierzchołków.
+     */
+    public static void wczytajWspolrzedne(File plik, ModelGrafu model) throws IOException {
+        try (BufferedReader br = new BufferedReader(new FileReader(plik))) {
+            String linia;
+            while ((linia = br.readLine()) != null) {
+                String[] czesci = linia.trim().split("\\s+");
+                if (czesci.length == 3) {
+                    String nazwa = czesci[0];
+                    double x = Double.parseDouble(czesci[1]);
+                    double y = Double.parseDouble(czesci[2]);
+
+                    Map<String, Wierzcholek> mapaWierzcholkow = model.getWierzcholki();
+
+                    Wierzcholek w = mapaWierzcholkow.get(nazwa);
+                    if(w != null) {
+                        w.setX(x);
+                        w.setY(y);
+                    }
+                }
             }
         }
     }
