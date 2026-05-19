@@ -21,4 +21,10 @@ public class Krawedz {
     public Wierzcholek getV1() { return v1; }
     public Wierzcholek getV2() { return v2; }
     public double getWaga() { return waga; }
+    public void setWaga(double waga) { this.waga = waga; }
+
+    @Override
+    public String toString() {
+        return String.format("%-16s %-16s %-16s %-16f", nazwa, v1.getNazwa(), v2.getNazwa(), waga);
+    }
 }
