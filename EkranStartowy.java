@@ -56,7 +56,6 @@ public class EkranStartowy extends JFrame {
         add(panelGlowny);
     }
 
-
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new EkranStartowy().setVisible(true));
     }
