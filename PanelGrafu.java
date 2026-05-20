@@ -13,16 +13,25 @@ import java.util.function.Consumer;
  */
 public class PanelGrafu extends JPanel {
     private ModelGrafu model;
+
+    // Pola do ustawień "kamery"
     private double przyblizenie = 1.0;
-    private Wierzcholek aktywnyWierzcholek = null;
-    private Wierzcholek ostatniAktywny = null;
     private double przesuniecieX = 0.0;
     private double przesuniecieY = 0.0;
+
+    // Pola do śledzenia zaznaczanych wierzchołków
+    private Wierzcholek aktywnyWierzcholek = null;
+    private Wierzcholek ostatniAktywny = null;
     private int ostatniaPozX;
     private int ostatniaPozY;
 
+    // Pola do komunikacji z panelem bocznym
     private Consumer<Wierzcholek> akcjaZaznaczenia = null;
     private Runnable akcjaPuszczenia = null;
+
+    // Pola do zmiany widoku
+    private boolean pokazujEtykiety = true;
+    private boolean pokazujWagi = true;
 
     public PanelGrafu(ModelGrafu model) {
         this.model = model;
@@ -60,6 +69,9 @@ public class PanelGrafu extends JPanel {
         repaint();
     }
 
+    public void setPokazujEtykiety(boolean pokazuj) { this.pokazujEtykiety = pokazuj; }
+    public void setPokazujWagi(boolean pokazuj) { this.pokazujWagi = pokazuj; }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -73,13 +85,23 @@ public class PanelGrafu extends JPanel {
         g2.scale(przyblizenie, przyblizenie);
 
         // 1. Rysowanie krawędzi
-        g2.setColor(Color.LIGHT_GRAY);
+        g2.setFont(new Font("Arial", Font.BOLD, 18));
+        double srodekDlugosciX;
+        double srodekDlugosciY;
         for (Krawedz k : model.getKrawedzie()) {
+            g2.setColor(Color.LIGHT_GRAY);
             Line2D linia = new Line2D.Double(
                     k.getV1().getX(), k.getV1().getY(),
                     k.getV2().getX(), k.getV2().getY()
             );
             g2.draw(linia);
+
+            if (pokazujWagi) {
+                srodekDlugosciX = (k.getV2().getX() + k.getV1().getX()) / 2;
+                srodekDlugosciY = (k.getV2().getY() + k.getV1().getY()) / 2;
+                g2.setColor(Color.GRAY);
+                g2.drawString(String.valueOf(k.getWaga()), (int) srodekDlugosciX + 10, (int) srodekDlugosciY - 10);
+            }
         }
 
         // 2. Rysowanie wierzchołków
@@ -91,9 +113,11 @@ public class PanelGrafu extends JPanel {
             Ellipse2D punktWewn = new Ellipse2D.Double(w.getX() - 8, w.getY() - 8, 16, 16);
             g2.fill(punktWewn);
 
-            g2.setColor(Color.BLACK);
-            g2.setFont(new Font("Arial", Font.BOLD, 18));
-            g2.drawString(w.getNazwa(), (int)w.getX() + 14, (int)w.getY() - 14);
+            if (pokazujEtykiety) {
+                g2.setColor(Color.BLACK);
+                g2.setFont(new Font("Arial", Font.BOLD, 18));
+                g2.drawString(w.getNazwa(), (int) w.getX() + 14, (int) w.getY() - 14);
+            }
         }
 
         if (ostatniAktywny != null) {
