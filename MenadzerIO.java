@@ -68,4 +68,19 @@ public class MenadzerIO {
             }
         }
     }
+
+    public static void zapiszDoPliku(File plik, ModelGrafu model) throws Exception {
+        // try-with-resources, żeby plik sam się bezpiecznie zamknął
+        try (java.io.PrintWriter pw = new java.io.PrintWriter(new java.io.FileWriter(plik))) {
+            for (Wierzcholek w : model.getWierzcholki().values()) {
+                pw.printf("%s %f %f\n", w.getNazwa(), w.getX(), w.getY());
+            }
+
+            pw.println("-------------------");
+
+            for (Krawedz k : model.getKrawedzie()) {
+                pw.printf("%s %s %f\n", k.getV1().getNazwa(), k.getV2().getNazwa(), k.getWaga());
+            }
+        }
+    }
 }
