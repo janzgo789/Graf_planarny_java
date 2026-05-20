@@ -44,12 +44,34 @@ public class WizualizatorGrafu extends JFrame {
         // Menu górne
         JMenuBar menuBar = new JMenuBar();
         JMenu menuPlik = new JMenu("Plik");
+        JMenu menuWidok = new JMenu("Widok");
 
         JMenuItem mItemOtworz = new JMenuItem("Otwórz plik tekstowy");
         mItemOtworz.addActionListener(e -> obsluzWczytywanie());
 
+        JMenuItem mItemZapisz = new JMenuItem("Zapisz jako...");
+        mItemZapisz.addActionListener(e -> obsluzZapisywanie());
+
+        JCheckBoxMenuItem mItemPokazEtykiety = new JCheckBoxMenuItem("Ukryj etykiety wierzchołków");
+        mItemPokazEtykiety.addActionListener(e -> {
+            panelWizualizacji.setPokazujEtykiety(!mItemPokazEtykiety.isSelected());
+            repaint();
+        });
+
+        JCheckBoxMenuItem mItemPokazWagi = new JCheckBoxMenuItem("Ukryj wagi krawędzi");
+        mItemPokazWagi.addActionListener(e -> {
+            panelWizualizacji.setPokazujWagi(!mItemPokazWagi.isSelected());
+            repaint();
+        });
+
         menuPlik.add(mItemOtworz);
         menuBar.add(menuPlik);
+        menuPlik.add(mItemZapisz);
+
+        menuWidok.add(mItemPokazEtykiety);
+        menuWidok.add(mItemPokazWagi);
+        menuBar.add(menuWidok);
+
         setJMenuBar(menuBar);
 
         // Panel narzędzi (Zoom)
@@ -291,8 +313,21 @@ public class WizualizatorGrafu extends JFrame {
         }
     }
 
+    private void obsluzZapisywanie() {
+        JFileChooser fc = new JFileChooser();
+        if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+            try {
+                File plikDocelowy = fc.getSelectedFile();
+                MenadzerIO.zapiszDoPliku(plikDocelowy, model);
+                JOptionPane.showMessageDialog(this, "Graf zapisany pomyślnie!", "Sukces", JOptionPane.INFORMATION_MESSAGE);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Błąd podczas zapisywania: " + ex.getMessage(), "Błąd", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
     public void przeliczGraf(String wybranyAlgorytm) {
-        if (aktualnyPlik == null) return; // Zabezpieczenie
+        if (aktualnyPlik == null) return;
         String algorytm;
         if (wybranyAlgorytm.equals("Fruchterman-Reingold")) {
             algorytm = "fruchterman";
