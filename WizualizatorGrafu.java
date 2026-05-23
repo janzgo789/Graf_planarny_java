@@ -3,10 +3,8 @@ package proj;
 
 import java.io.File;
 import javax.swing.*;
-import javax.swing.plaf.BorderUIResource;
 import java.awt.*;
 import java.util.Locale;
-import java.util.function.Consumer;
 
 public class WizualizatorGrafu extends JFrame {
     // Pole zapamiętujące oryginalne wejście programu
@@ -15,6 +13,8 @@ public class WizualizatorGrafu extends JFrame {
     // Pola ekranu wizualizującego graf
     private ModelGrafu model;
     private PanelGrafu panelWizualizacji;
+    private final int szerokoscOkna = 1024;
+    private final int wysokoscOkna = 768;
 
     // Pole zakładki "Algorytmy" panelu bocznego
     private JComboBox<String> wyborAlgorytmu;
@@ -35,7 +35,7 @@ public class WizualizatorGrafu extends JFrame {
         this.aktualnyPlik = wczytanyPlik;
 
         setTitle("Wizualizator Grafów Planarnych");
-        setSize(1024, 768);
+        setSize(szerokoscOkna, wysokoscOkna);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
@@ -111,6 +111,9 @@ public class WizualizatorGrafu extends JFrame {
     private JPanel budujPanelBoczny() {
         // Przypięcie zakładek do prawej krawędzi panelu
         JTabbedPane zakladki = new JTabbedPane(JTabbedPane.NORTH);
+
+        // Do resetowania podświetlenia zaznaczonej krawędzi przy zmianie zakładki
+        zakladki.addChangeListener(e -> panelWizualizacji.nowaOstatniaAktywnaKrawedz(null));
 
         // Podpięcie zakładek
         zakladki.addTab("Wierzchołki", budujPanelWierzcholkow());
@@ -200,7 +203,7 @@ public class WizualizatorGrafu extends JFrame {
                     double noweY = Double.parseDouble(poleY.getText());
                     w.setX(noweX);
                     w.setY(noweY);
-                    panelWizualizacji.repaint();
+                    panelWizualizacji.wysrodkujObraz();
                     listaWierzcholkow.repaint();
                 } catch (NumberFormatException ex) {
                     JOptionPane.showMessageDialog(this,
@@ -228,6 +231,7 @@ public class WizualizatorGrafu extends JFrame {
         listaKrawedzi.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting() && listaKrawedzi.getSelectedValue() != null) {
                 Krawedz k = listaKrawedzi.getSelectedValue();
+                panelWizualizacji.nowaOstatniaAktywnaKrawedz(k);
                 poleWagi.setText(String.format(Locale.US, "%.2f", k.getWaga()));
             }
         });
@@ -267,7 +271,7 @@ public class WizualizatorGrafu extends JFrame {
 
                     wybrana.setWaga(nowaWaga);
                     model.korygujWspolrzedneWagami();
-                    panelWizualizacji.repaint();
+                    panelWizualizacji.wysrodkujObraz();
                     listaKrawedzi.repaint(); // Odświeża napis w liście (odpala toString)
                 } catch (NumberFormatException ex) {
                     JOptionPane.showMessageDialog(this,
@@ -304,8 +308,9 @@ public class WizualizatorGrafu extends JFrame {
 
                 // Wczytywanie
                 MenadzerIO.wczytajWejscie(fc.getSelectedFile(), model);
+                model.korygujWspolrzedneWagami();
                 przeliczGraf("fruchterman");
-                panelWizualizacji.repaint();
+                panelWizualizacji.wysrodkujObraz();
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this,
                         "Błąd: " + ex.getMessage());
@@ -343,7 +348,7 @@ public class WizualizatorGrafu extends JFrame {
             // Zmiana współrzędnych ze względu na wagi
             model.korygujWspolrzedneWagami();
 
-            panelWizualizacji.repaint();
+            panelWizualizacji.wysrodkujObraz();
             zaladujWierzcholkiDoListy();
             zaladujKrawedzieDoListy();
         } catch (Exception ex) {

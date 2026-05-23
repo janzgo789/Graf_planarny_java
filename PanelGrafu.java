@@ -6,6 +6,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.*;
 import java.awt.event.*;
+import java.util.Comparator;
+import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -18,21 +20,25 @@ public class PanelGrafu extends JPanel {
     private double przyblizenie = 1.0;
     private double przesuniecieX = 0.0;
     private double przesuniecieY = 0.0;
+    private final int szerokoscPanelu = 724;
+    private final int wysokoscPanelu = 768;
 
     // Pola do śledzenia zaznaczanych wierzchołków
     private Wierzcholek aktywnyWierzcholek = null;
-    private Wierzcholek ostatniAktywny = null;
+    private Wierzcholek ostatniAktywnyWierzcholek = null;
     private int ostatniaPozX;
     private int ostatniaPozY;
 
+    // Pole do śledzenia zaznaczonej krawędzi
+    private Krawedz ostatniaAktywnaKrawedz = null;
     // Pola do komunikacji z panelem bocznym
-    private Consumer<Wierzcholek> akcjaZaznaczenia = null;
-    private Runnable akcjaPuszczenia = null;
 
+    private Consumer<Wierzcholek> akcjaZaznaczeniaWierzcholkow = null;
+    private Runnable akcjaPuszczeniaWierzcholkow = null;
     // Pola do zmiany widoku
+
     private boolean pokazujEtykiety = true;
     private boolean pokazujWagi = true;
-
     public PanelGrafu(ModelGrafu model) {
         this.model = model;
         setBackground(Color.WHITE);
@@ -52,15 +58,18 @@ public class PanelGrafu extends JPanel {
 
     // Metody do komunikacji z panelem bocznym
     public void ZaznaczeniaWierzcholka(Consumer<Wierzcholek> akcja) {
-        this.akcjaZaznaczenia = akcja;
+        this.akcjaZaznaczeniaWierzcholkow = akcja;
     }
-
     public void PuszczenieWierzcholka(Runnable akcja) {
-        this.akcjaPuszczenia = akcja;
+        this.akcjaPuszczeniaWierzcholkow = akcja;
+    }
+    public void nowyOstatniAktywny(Wierzcholek w) {
+        this.ostatniAktywnyWierzcholek = w;
+        repaint();
     }
 
-    public void nowyOstatniAktywny(Wierzcholek w) {
-        this.ostatniAktywny = w;
+    public void nowaOstatniaAktywnaKrawedz(Krawedz ostatniaAktywnaKrawedz) {
+        this.ostatniaAktywnaKrawedz = ostatniaAktywnaKrawedz;
         repaint();
     }
 
@@ -85,11 +94,11 @@ public class PanelGrafu extends JPanel {
         g2.scale(przyblizenie, przyblizenie);
 
         // 1. Rysowanie krawędzi
-        g2.setFont(new Font("Arial", Font.BOLD, 18));
+        g2.setFont(new Font("Arial", Font.BOLD, (int) (16/przyblizenie)));
         double srodekDlugosciX;
         double srodekDlugosciY;
         for (Krawedz k : model.getKrawedzie()) {
-            g2.setColor(Color.LIGHT_GRAY);
+            g2.setColor(Color.BLACK);
             Line2D linia = new Line2D.Double(
                     k.getV1().getX(), k.getV1().getY(),
                     k.getV2().getX(), k.getV2().getY()
@@ -104,6 +113,15 @@ public class PanelGrafu extends JPanel {
             }
         }
 
+        if (ostatniaAktywnaKrawedz != null) {
+            g2.setColor(Color.BLUE);
+            Line2D zaznaczonaKrawedz = new Line2D.Double(
+                    ostatniaAktywnaKrawedz.getV1().getX(), ostatniaAktywnaKrawedz.getV1().getY(),
+                    ostatniaAktywnaKrawedz.getV2().getX(), ostatniaAktywnaKrawedz.getV2().getY()
+            );
+            g2.draw(zaznaczonaKrawedz);
+        }
+
         // 2. Rysowanie wierzchołków
         for (Wierzcholek w : model.getWierzcholki().values()) {
             g2.setColor(new Color(80, 90, 255));
@@ -115,16 +133,48 @@ public class PanelGrafu extends JPanel {
 
             if (pokazujEtykiety) {
                 g2.setColor(Color.BLACK);
-                g2.setFont(new Font("Arial", Font.BOLD, 18));
+                g2.setFont(new Font("Arial", Font.BOLD, (int) (16/przyblizenie)));
                 g2.drawString(w.getNazwa(), (int) w.getX() + 14, (int) w.getY() - 14);
             }
         }
 
-        if (ostatniAktywny != null) {
+        if (ostatniAktywnyWierzcholek != null) {
             g2.setColor(new Color(60, 70, 255));
-            Ellipse2D ostatniPunkt = new Ellipse2D.Double(ostatniAktywny.getX() - 14, ostatniAktywny.getY() - 14, 28, 28);
+            Ellipse2D ostatniPunkt = new Ellipse2D.Double(ostatniAktywnyWierzcholek.getX() - 14, ostatniAktywnyWierzcholek.getY() - 14, 28, 28);
             g2.fill(ostatniPunkt);
         }
+    }
+
+    public void wysrodkujObraz() {
+        Map<String, Wierzcholek> mapaWierzcholkow = model.getWierzcholki();
+        double maxX = -Double.MAX_VALUE;
+        double minX = Double.MAX_VALUE;
+        double maxY = -Double.MAX_VALUE;
+        double minY = Double.MAX_VALUE;
+        for (Wierzcholek w : mapaWierzcholkow.values()) {
+            if (w.getX() > maxX) { maxX = w.getX(); }
+            if (w.getX() < minX) { minX = w.getX(); }
+
+            if (w.getY() > maxY) { maxY = w.getY(); }
+            if (w.getY() < minY) { minY = w.getY(); }
+        }
+
+        double szerokoscGrafu = maxX - minX;
+        double wysokoscGrafu = maxY - minY;
+
+        if (szerokoscGrafu == 0) { szerokoscGrafu = 0.01; }
+        if (wysokoscGrafu == 0) { wysokoscGrafu = 0.01; }
+
+        double skalaX = (szerokoscPanelu / szerokoscGrafu)*0.9;
+        double skalaY = (wysokoscPanelu / wysokoscGrafu)*0.8;
+        przyblizenie = Math.min(skalaX, skalaY);
+
+        double srodekGrafuX = (maxX + minX) / 2;
+        double srodekGrafuY = (maxY + minY) / 2;
+        przesuniecieX = (szerokoscPanelu / 2) - (srodekGrafuX * przyblizenie) - 10;
+        przesuniecieY = (wysokoscPanelu / 2) - (srodekGrafuY * przyblizenie) - 40;
+
+        repaint();
     }
 
     private class ObslugaMyszy extends MouseAdapter {
@@ -138,13 +188,13 @@ public class PanelGrafu extends JPanel {
                 double odleglosc = Math.sqrt((w.getX() - myszX)*(w.getX() - myszX)
                         + (w.getY() - myszY)*(w.getY() - myszY));
                 // promień wierzchołka wynosi 10, ale będzie łatwiej kliknąć
-                if (odleglosc <= 13 && SwingUtilities.isLeftMouseButton(e)) {
+                if (odleglosc <= 13/przyblizenie && SwingUtilities.isLeftMouseButton(e)) {
                     aktywnyWierzcholek = w;
-                    ostatniAktywny = aktywnyWierzcholek;
+                    ostatniAktywnyWierzcholek = aktywnyWierzcholek;
 
                     // Przesłanie wierzchołka do panelu bocznego
-                    if (akcjaZaznaczenia != null) {
-                        akcjaZaznaczenia.accept(w);
+                    if (akcjaZaznaczeniaWierzcholkow != null) {
+                        akcjaZaznaczeniaWierzcholkow.accept(w);
                     }
                     break;
                 }
@@ -153,7 +203,7 @@ public class PanelGrafu extends JPanel {
 
         @Override
         public void mouseDragged(MouseEvent e) {
-            if (aktywnyWierzcholek != null && ostatniAktywny != null) {
+            if (aktywnyWierzcholek != null && ostatniAktywnyWierzcholek != null) {
                 double pozX = (e.getX() - przesuniecieX) / przyblizenie;
                 double pozY = (e.getY() - przesuniecieY) / przyblizenie;
                 aktywnyWierzcholek.setX(pozX);
@@ -173,12 +223,13 @@ public class PanelGrafu extends JPanel {
         @Override
         public void mouseReleased(MouseEvent e) {
             // tylko w momencie gdy zaznaczyliśmy jakiś wierzchołek lewym przyciskiem myszy
-            if (SwingUtilities.isLeftMouseButton(e) && aktywnyWierzcholek != null && akcjaPuszczenia != null) {
-                akcjaPuszczenia.run();
+            if (SwingUtilities.isLeftMouseButton(e)) {
+                if ( aktywnyWierzcholek != null && akcjaPuszczeniaWierzcholkow != null) {
+                    akcjaPuszczeniaWierzcholkow.run();
+                }
+                wysrodkujObraz();
             }
-
             aktywnyWierzcholek = null;
-            repaint();
         }
     }
 }
