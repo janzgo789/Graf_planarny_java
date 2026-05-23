@@ -36,12 +36,19 @@ public class SilnikAlgorytmow {
         // logger silnika
         konstruktorProcesu.inheritIO();
 
+        Process silnik = null;
         // Uruchomienie silnika
-        try (Process silnik = konstruktorProcesu.start()) {
-
+        try {
+            silnik = konstruktorProcesu.start();
             int kodPowrotu = silnik.waitFor();
             if (kodPowrotu != 0) {
                 System.err.println("Silnik obliczeniowy zwrócił błąd. Kod wyjścia: " + kodPowrotu);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if(silnik != null) {
+                silnik.destroy();
             }
         }
 
