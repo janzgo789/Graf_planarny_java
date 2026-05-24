@@ -10,6 +10,7 @@ public class EkranStartowy extends JFrame {
     public EkranStartowy() {
         setTitle("Wizualizator Grafów - Start");
         setSize(1024, 768);
+        this.setResizable(false);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new BorderLayout());

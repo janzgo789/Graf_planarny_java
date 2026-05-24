@@ -36,6 +36,7 @@ public class WizualizatorGrafu extends JFrame {
 
         setTitle("Wizualizator Grafów Planarnych");
         setSize(szerokoscOkna, wysokoscOkna);
+        this.setResizable(false);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
@@ -49,8 +50,11 @@ public class WizualizatorGrafu extends JFrame {
         JMenuItem mItemOtworz = new JMenuItem("Otwórz plik tekstowy");
         mItemOtworz.addActionListener(e -> obsluzWczytywanie());
 
-        JMenuItem mItemZapisz = new JMenuItem("Zapisz jako...");
-        mItemZapisz.addActionListener(e -> obsluzZapisywanie());
+        JMenuItem mItemZapiszTxt = new JMenuItem("Zapisz jako plik tekstowy...");
+        mItemZapiszTxt.addActionListener(e -> obsluzZapisywanie(true));
+
+        JMenuItem mItemZapiszBin = new JMenuItem("Zapisz jako plik binarny...");
+        mItemZapiszBin.addActionListener(e -> obsluzZapisywanie(false));
 
         JCheckBoxMenuItem mItemPokazEtykiety = new JCheckBoxMenuItem("Ukryj etykiety wierzchołków");
         mItemPokazEtykiety.addActionListener(e -> {
@@ -66,7 +70,8 @@ public class WizualizatorGrafu extends JFrame {
 
         menuPlik.add(mItemOtworz);
         menuBar.add(menuPlik);
-        menuPlik.add(mItemZapisz);
+        menuPlik.add(mItemZapiszTxt);
+        menuPlik.add(mItemZapiszBin);
 
         menuWidok.add(mItemPokazEtykiety);
         menuWidok.add(mItemPokazWagi);
@@ -74,15 +79,13 @@ public class WizualizatorGrafu extends JFrame {
 
         setJMenuBar(menuBar);
 
-        // Panel narzędzi (Zoom)
+        // Panel narzędzi "Reset widoku"
         JPanel panelNarzedzi = new JPanel();
-        JSlider suwakZoom = new JSlider(10, 500, 100);
-        suwakZoom.addChangeListener(e -> {
-            panelWizualizacji.ustawPrzyblizenie(suwakZoom.getValue() / 100.0);
+        JButton resetWidoku = new JButton("Reset widoku");
+        resetWidoku.addActionListener(e -> {
+            panelWizualizacji.wysrodkujObraz();
         });
-
-        panelNarzedzi.add(new JLabel("Powiększenie:"));
-        panelNarzedzi.add(suwakZoom);
+        panelNarzedzi.add(resetWidoku);
 
         add(panelWizualizacji, BorderLayout.CENTER);
         add(panelNarzedzi, BorderLayout.SOUTH);
@@ -270,7 +273,7 @@ public class WizualizatorGrafu extends JFrame {
                     }
 
                     wybrana.setWaga(nowaWaga);
-                    model.korygujWspolrzedneWagami();
+                    panelWizualizacji.korygujWspolrzedneWagami();
                     panelWizualizacji.wysrodkujObraz();
                     listaKrawedzi.repaint(); // Odświeża napis w liście (odpala toString)
                 } catch (NumberFormatException ex) {
@@ -308,7 +311,7 @@ public class WizualizatorGrafu extends JFrame {
 
                 // Wczytywanie
                 MenadzerIO.wczytajWejscie(fc.getSelectedFile(), model);
-                model.korygujWspolrzedneWagami();
+                panelWizualizacji.korygujWspolrzedneWagami();
                 przeliczGraf("fruchterman");
                 panelWizualizacji.wysrodkujObraz();
             } catch (Exception ex) {
@@ -318,12 +321,16 @@ public class WizualizatorGrafu extends JFrame {
         }
     }
 
-    private void obsluzZapisywanie() {
+    private void obsluzZapisywanie(boolean formatTxt) {
         JFileChooser fc = new JFileChooser();
         if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
             try {
                 File plikDocelowy = fc.getSelectedFile();
-                MenadzerIO.zapiszDoPliku(plikDocelowy, model);
+                if (formatTxt) {
+                    MenadzerIO.zapiszDoPlikuTxt(plikDocelowy, model);
+                } else {
+                    MenadzerIO.zapiszDoPlikuBin(plikDocelowy, model);
+                }
                 JOptionPane.showMessageDialog(this, "Graf zapisany pomyślnie!", "Sukces", JOptionPane.INFORMATION_MESSAGE);
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Błąd podczas zapisywania: " + ex.getMessage(), "Błąd", JOptionPane.ERROR_MESSAGE);
@@ -346,7 +353,7 @@ public class WizualizatorGrafu extends JFrame {
             MenadzerIO.wczytajWspolrzedne(plikWynikowy, model);
 
             // Zmiana współrzędnych ze względu na wagi
-            model.korygujWspolrzedneWagami();
+            panelWizualizacji.korygujWspolrzedneWagami();
 
             panelWizualizacji.wysrodkujObraz();
             zaladujWierzcholkiDoListy();
