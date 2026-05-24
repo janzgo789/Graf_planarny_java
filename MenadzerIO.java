@@ -69,18 +69,32 @@ public class MenadzerIO {
         }
     }
 
-    public static void zapiszDoPliku(File plik, ModelGrafu model) throws Exception {
+    public static void zapiszDoPlikuTxt(File plik, ModelGrafu model) throws Exception {
         // try-with-resources, żeby plik sam się bezpiecznie zamknął
         try (java.io.PrintWriter pw = new java.io.PrintWriter(new java.io.FileWriter(plik))) {
+            // Liczba wierzchołków
+            pw.printf("%x\n", model.getWierzcholki().size());
+
+            // Format: <id_wierzcholka> <współrzędna X> <współrzędna Y>
             for (Wierzcholek w : model.getWierzcholki().values()) {
                 pw.printf("%s %f %f\n", w.getNazwa(), w.getX(), w.getY());
             }
+        }
+    }
 
-            pw.println("-------------------");
+    public static void zapiszDoPlikuBin(File plik, ModelGrafu model) {
+        try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(plik))) {
+            // Liczba wierzchołków
+            dos.writeInt(model.getWierzcholki().size());
 
-            for (Krawedz k : model.getKrawedzie()) {
-                pw.printf("%s %s %f\n", k.getV1().getNazwa(), k.getV2().getNazwa(), k.getWaga());
+            // Format: <id_wierzcholka> <współrzędna X> <współrzędna Y>
+            for (Map.Entry<String, Wierzcholek> entry : model.getWierzcholki().entrySet()) {
+                dos.writeUTF(entry.getKey());            // ID wierzchołka
+                dos.writeDouble(entry.getValue().getX()); // współrzędna X
+                dos.writeDouble(entry.getValue().getY()); // współrzędna Y
             }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
