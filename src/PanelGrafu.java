@@ -87,11 +87,6 @@ public class PanelGrafu extends JPanel {
         repaint();
     }
 
-    public void ustawPrzyblizenie(double wartosc) {
-        this.przyblizenie = wartosc;
-        repaint();
-    }
-
     public void setPokazujEtykiety(boolean pokazuj) { this.pokazujEtykiety = pokazuj; }
     public void setPokazujWagi(boolean pokazuj) { this.pokazujWagi = pokazuj; }
 
