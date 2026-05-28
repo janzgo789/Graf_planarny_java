@@ -6,6 +6,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Locale;
 
+/**
+ * Wyświetla ekran główny aplikacji i obrazuje podany graf
+ */
 public class WizualizatorGrafu extends JFrame {
     // Pole zapamiętujące oryginalne wejście programu
     private File aktualnyPlik = null;

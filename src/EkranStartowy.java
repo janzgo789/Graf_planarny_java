@@ -5,6 +5,9 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 
+/**
+ * Odpowiada za uruchomienie programu i wyświetlenie ekranu startowego.
+ */
 public class EkranStartowy extends JFrame {
 
     public EkranStartowy() {

@@ -9,9 +9,7 @@ import java.util.*;
  */
 public class MenadzerIO {
 
-    /**
-     * Metoda czyta plik wejściowy i uzupełnia pozycje w strukturach wierzchołków i krawędzi.
-     */
+    //Metoda czyta plik wejściowy i uzupełnia pozycje w strukturach wierzchołków i krawędzi.
     public static void wczytajWejscie(File plik, ModelGrafu model) throws IOException {
         model.wyczysc();
         try (BufferedReader br = new BufferedReader(new FileReader(plik))) {
