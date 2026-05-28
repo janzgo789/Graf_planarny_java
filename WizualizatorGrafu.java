@@ -47,6 +47,7 @@ public class WizualizatorGrafu extends JFrame {
         JMenu menuPlik = new JMenu("Plik");
         JMenu menuWidok = new JMenu("Widok");
 
+        // Przyciski zakładki "Plik"
         JMenuItem mItemOtworz = new JMenuItem("Otwórz plik tekstowy");
         mItemOtworz.addActionListener(e -> obsluzWczytywanie());
 
@@ -56,6 +57,7 @@ public class WizualizatorGrafu extends JFrame {
         JMenuItem mItemZapiszBin = new JMenuItem("Zapisz jako plik binarny...");
         mItemZapiszBin.addActionListener(e -> obsluzZapisywanie(false));
 
+        // Przyciski zakładki "Widok"
         JCheckBoxMenuItem mItemPokazEtykiety = new JCheckBoxMenuItem("Ukryj etykiety wierzchołków");
         mItemPokazEtykiety.addActionListener(e -> {
             panelWizualizacji.setPokazujEtykiety(!mItemPokazEtykiety.isSelected());
@@ -68,6 +70,7 @@ public class WizualizatorGrafu extends JFrame {
             repaint();
         });
 
+        // Dodanie przycisków
         menuPlik.add(mItemOtworz);
         menuBar.add(menuPlik);
         menuPlik.add(mItemZapiszTxt);
@@ -264,7 +267,7 @@ public class WizualizatorGrafu extends JFrame {
                 try {
                     double nowaWaga = Double.parseDouble(poleWagi.getText());
 
-                    if (nowaWaga < 0) {
+                    if (nowaWaga <= 0) {
                         JOptionPane.showMessageDialog(this,
                                 "Waga krawędzi nie może być ujemna! Podaj wartość większą lub równą 0.",
                                 "Błąd wartości",
@@ -290,7 +293,18 @@ public class WizualizatorGrafu extends JFrame {
 
     private void zaladujWierzcholkiDoListy() {
         modelListyWierzcholkow.clear();
-        for (Wierzcholek w : model.getWierzcholki().values()) {
+        java.util.List<Wierzcholek> posortowaneWierzcholki = new java.util.ArrayList<>(model.getWierzcholki().values());
+        posortowaneWierzcholki.sort((w1, w2) -> {
+            try {
+                int id1 = Integer.parseInt(w1.getNazwa());
+                int id2 = Integer.parseInt(w2.getNazwa());
+                return Integer.compare(id1, id2);
+            } catch (NumberFormatException ex) {
+               return w1.getNazwa().compareTo(w2.getNazwa());
+            }
+        });
+
+        for (Wierzcholek w : posortowaneWierzcholki) {
             modelListyWierzcholkow.addElement(w);
         }
     }

@@ -7,7 +7,8 @@ import java.io.InterruptedIOException;
 public class SilnikAlgorytmow {
     /**
      * Metoda wywołuje zewnętrzny program w C.
-     * @param plik Oryginalny plik z krawędziami (np. graf.txt)
+     *
+     * @param plik     Oryginalny plik z krawędziami (np. graf.txt)
      * @param algortym Nazwa algorytmu do przekazania w parametrze (np. "Fruchterman-Reingold")
      * @return Plik wynikowy wygenerowany przez program w C
      */
@@ -33,7 +34,7 @@ public class SilnikAlgorytmow {
                 "-a", algortym
         );
 
-        // logger silnika
+        // logger silnika (pozostawione do debugowania)
         konstruktorProcesu.inheritIO();
 
         Process silnik = null;
