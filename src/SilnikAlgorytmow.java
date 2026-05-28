@@ -1,8 +1,7 @@
-package proj;
+package proj.src;
 
 import java.io.IOException;
 import java.io.File;
-import java.io.InterruptedIOException;
 
 public class SilnikAlgorytmow {
     /**
